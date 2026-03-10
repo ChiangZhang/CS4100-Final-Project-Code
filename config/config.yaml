@@ -1,0 +1,73 @@
+project:
+  name: spotify-genre-classifier
+  version: "0.1.0"
+  seed: 42
+
+paths:
+  raw_data: data/raw/spotify_tracks.csv
+  processed_data: data/processed/
+  models: models/saved/
+  checkpoints: models/checkpoints/
+  logs: logs/
+
+dataset:
+  test_size: 0.2
+  val_size: 0.1
+  stratify: true
+
+# Genre/playlist labels the model will classify into
+labels:
+  - cardio_workout
+  - upbeat_pop
+  - chill_vibes
+  - focus_study
+  - party_mix
+  - acoustic_indie
+  - hip_hop
+  - late_night_drive
+
+# Audio features used as model input
+features:
+  audio:
+    - danceability
+    - energy
+    - loudness
+    - speechiness
+    - acousticness
+    - instrumentalness
+    - liveness
+    - valence
+    - tempo
+  metadata:
+    - popularity
+    - duration_ms
+    - explicit
+    - key
+    - mode
+    - time_signature
+
+model:
+  type: random_forest # options(can change this later): random_forest | gradient_boosting | mlp | transformer
+  hyperparameters:
+    random_forest:
+      n_estimators: 200
+      max_depth: 20
+      min_samples_split: 5
+      class_weight: balanced
+    mlp:
+      hidden_layers: [256, 128, 64]
+      dropout: 0.3
+      learning_rate: 0.001
+      batch_size: 64
+      epochs: 50
+      optimizer: adam
+
+training:
+  early_stopping_patience: 5
+  checkpoint_every_n_epochs: 5
+  log_every_n_steps: 10
+
+spotify_api:
+  client_id: ${SPOTIFY_CLIENT_ID}     # set in .env
+  client_secret: ${SPOTIFY_CLIENT_SECRET}
+  redirect_uri: http://localhost:8888/callback

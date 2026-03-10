@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Environments
+.env
+.venv/
+venv/
+env/
+
+# Data — don't commit raw/processed datasets
+data/raw/*
+data/processed/*
+data/external/*
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!data/external/.gitkeep
+
+# Models — don't commit large binary weights
+models/saved/*
+models/checkpoints/*
+!models/saved/.gitkeep
+!models/checkpoints/.gitkeep
+
+# Logs
+logs/
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# MLflow
+mlruns/
+mlartifacts/
