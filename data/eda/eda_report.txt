@@ -1,0 +1,200 @@
+Shape: (114000, 21)
+
+Thus, the dataset is sufficiently large to support clustering and similarity-based modeling without overfitting concerns.
+
+Columns:
+ Index(['Unnamed: 0', 'track_id', 'artists', 'album_name', 'track_name',
+       'popularity', 'duration_ms', 'explicit', 'danceability', 'energy',
+       'key', 'loudness', 'mode', 'speechiness', 'acousticness',
+       'instrumentalness', 'liveness', 'valence', 'tempo', 'time_signature',
+       'track_genre'],
+      dtype='object')
+
+Data Types:
+ Unnamed: 0            int64
+track_id             object
+artists              object
+album_name           object
+track_name           object
+popularity            int64
+duration_ms           int64
+explicit               bool
+danceability        float64
+energy              float64
+key                   int64
+loudness            float64
+mode                  int64
+speechiness         float64
+acousticness        float64
+instrumentalness    float64
+liveness            float64
+valence             float64
+tempo               float64
+time_signature        int64
+track_genre          object
+dtype: object
+
+Missing Values:
+ Unnamed: 0          0
+track_id            0
+artists             1
+album_name          1
+track_name          1
+popularity          0
+duration_ms         0
+explicit            0
+danceability        0
+energy              0
+key                 0
+loudness            0
+mode                0
+speechiness         0
+acousticness        0
+instrumentalness    0
+liveness            0
+valence             0
+tempo               0
+time_signature      0
+track_genre         0
+dtype: int64
+
+I removed non-informative indexing features to avoid introducing noise into correlation and clustering analyses.
+
+Summary Statistics:
+           Unnamed: 0     popularity   duration_ms  ...        valence          tempo  time_signature
+count  114000.000000  114000.000000  1.140000e+05  ...  114000.000000  114000.000000   114000.000000
+mean    56999.500000      33.238535  2.280292e+05  ...       0.474068     122.147837        3.904035
+std     32909.109681      22.305078  1.072977e+05  ...       0.259261      29.978197        0.432621
+min         0.000000       0.000000  0.000000e+00  ...       0.000000       0.000000        0.000000
+25%     28499.750000      17.000000  1.740660e+05  ...       0.260000      99.218750        4.000000
+50%     56999.500000      35.000000  2.129060e+05  ...       0.464000     122.017000        4.000000
+75%     85499.250000      50.000000  2.615060e+05  ...       0.683000     140.071000        4.000000
+max    113999.000000     100.000000  5.237295e+06  ...       0.995000     243.372000        5.000000
+
+[8 rows x 16 columns]
+
+Based off of this, key observations:
+
+valence mean ≈ 0.47
+→ songs are centered around neutral mood
+
+tempo mean ≈ 122 BPM
+→ typical pop/modern tempo
+
+popularity mean ≈ 33
+→ dataset includes many non-mainstream songs
+
+* I would recommend removing all data with invalid duration values:
+df = df[df['duration_ms'] > 0]
+df = df[df['tempo'] > 0]
+df = df[df['time_signature'] > 0]
+
+Top correlations with VALENCE (mood):
+valence             1.000000
+danceability        0.477341
+loudness            0.279848
+energy              0.258934
+time_signature      0.133686
+tempo               0.078273
+Unnamed: 0          0.053111
+speechiness         0.036635
+key                 0.034103
+mode                0.021953
+liveness            0.019086
+explicit           -0.003381
+popularity         -0.040534
+acousticness       -0.107070
+duration_ms        -0.154479
+instrumentalness   -0.324312
+Name: valence, dtype: float64
+
+Top Genres:
+ track_genre
+acoustic       1000
+afrobeat       1000
+alt-rock       1000
+alternative    1000
+ambient        1000
+anime          1000
+black-metal    1000
+bluegrass      1000
+blues          1000
+brazil         1000
+Name: count, dtype: int64
+
+Correlation with MOOD SCORE:
+mood_score          1.000000
+valence             0.800405
+energy              0.786267
+loudness            0.651744
+danceability        0.388723
+tempo               0.203894
+time_signature      0.201655
+liveness            0.126898
+speechiness         0.111880
+explicit            0.058010
+key                 0.051609
+Unnamed: 0         -0.000776
+popularity         -0.025274
+mode               -0.034590
+duration_ms        -0.062500
+instrumentalness   -0.320343
+acousticness       -0.523975
+Name: mood_score, dtype: float64
+
+Correlation Takeaways:
+
+Strong positive:
+ - danceability → happiness
+ - energy → excitement
+ - loudness → intensity
+** Happy songs = more energetic + danceable
+
+Strong negative:
+- instrumentalness → sadness / low valence
+- acousticness → calmer / lower energy
+** Instrumental songs tend to feel: less “happy”, more ambient / emotional
+
+Valence is most strongly correlated with danceability and energy, indicating that happier songs tend to be more rhythmically engaging and energetic, while instrumental and acoustic tracks are associated with lower valence.
+
+Genre Distribution:
+
+There is a pretty even distribution of genres in the dataset, which makes this reliable and robust. Prevents any bias towards a given music style.
+
+Mood Score Analysis:
+valence      0.80
+energy       0.78
+loudness     0.65
+danceability 0.38
+acousticness -0.52
+instrumentalness -0.32
+
+
+mood_score strongly depends on:
+- valence (positivity)
+- energy (intensity)
+** This confirms our project idea should work
+
+Secondary features:
+- loudness → intensity proxy
+- danceability → engagement
+
+Strong negative:
+- acousticness → calmer mood
+- instrumentalness → less energetic / emotional
+
+We can define mood as a combination of valence and energy, supported by strong correlations with loudness and danceability. Acoustic and instrumental features negatively correlate with mood intensity, reinforcing their role in calmer or lower-energy music.
+
+This means...
+
+Our feature selection should be focused on:
+heavy emphasis:
+['valence', 'energy']
+for improving transitions:
+['danceability', 'loudness', 'tempo']
+additional:
+['acousticness', 'instrumentalness']
+
+** These features seem a little less relavent for mood, but should still be kept track of: track_id, artists, album_name, track_name
+
+Overall, this analysis shows that musical mood can be validly represented in a 2D space defined by mostly valence and energy. Additional features like danceability and loudness refine this representation, enabling smooth interpolation between emotional states for playlist generation.
