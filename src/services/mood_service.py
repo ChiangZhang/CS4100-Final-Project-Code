@@ -2,11 +2,15 @@ import torch
 import numpy as np
 from models.mood_model import MoodNet
 from utils.mood_utils import MOODS
+import os
+import subprocess
 
 MODEL_PATH = "src/models/mood_model.pt"
+SCALER_PATH = os.path.join(os.path.dirname(__file__), "../models/feature_scaler.pkl")
 
 class MoodService:
     def __init__(self, input_dim, hidden_dim=64):
+        self.ensure_model_exists()
         self.model = MoodNet(input_dim, hidden_dim, len(MOODS))
         self.model.load_state_dict(torch.load(MODEL_PATH))
         self.model.eval()
@@ -24,3 +28,13 @@ class MoodService:
         end_score = pred[end_idx]
         
         return alpha * start_score + (1 - alpha) * end_score
+    
+    def ensure_model_exists(self):
+        if not os.path.exists(MODEL_PATH) or not os.path.exists(SCALER_PATH):
+            print("Model or scaler not found. Training model...")
+            
+            # Run training script automatically
+            subprocess.run(["python3", "src/train_mood_model.py"], check=True)
+            
+            print("Model training complete.")
+        print("model training files already exist!")
