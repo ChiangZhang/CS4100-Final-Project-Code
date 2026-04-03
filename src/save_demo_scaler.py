@@ -1,3 +1,5 @@
+## CAN PROBS DELETE THIS LATER
+
 import os
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler

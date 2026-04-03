@@ -34,7 +34,7 @@ class MoodService:
             print("Model or scaler not found. Training model...")
             
             # Run training script automatically
-            subprocess.run(["python3", "src/train_mood_model.py"], check=True)
+            subprocess.run(["python3", "src/models/train_mood_model.py"], check=True)
             
             print("Model training complete.")
         print("model training files already exist!")
