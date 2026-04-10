@@ -9,15 +9,15 @@ load_dotenv()
 client = genai.Client(api_key=os.environ.get("GEMINI_API_KEY"))
 
 # 1. Load data
-INPUT_PATH = "src/data/cleaned_dataset.csv"
-OUTPUT_PATH = "src/data/validation_5k_labeled.csv"
+INPUT_PATH = "src/data/next_batch_5k.csv"
+OUTPUT_PATH = "src/data/validation_5k_batch2.csv"
 
 # Verify file exists before starting
 if not os.path.exists(INPUT_PATH):
     print(f"Error: Could not find {INPUT_PATH}")
     exit()
 
-df = pd.read_csv(INPUT_PATH).head(5000)
+df = pd.read_csv(INPUT_PATH)
 
 # 2. THE PROMPT BUILDER (Fully Defined)
 def build_prompt(row):
