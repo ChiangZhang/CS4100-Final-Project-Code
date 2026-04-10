@@ -17,7 +17,7 @@ if not os.path.exists(INPUT_PATH):
     print(f"Error: Could not find {INPUT_PATH}")
     exit()
 
-df = pd.read_csv(INPUT_PATH).head(500)
+df = pd.read_csv(INPUT_PATH).head(5000)
 
 # 2. THE PROMPT BUILDER (Fully Defined)
 def build_prompt(row):
@@ -27,9 +27,19 @@ def build_prompt(row):
     
     return f"""You are a music mood labeling system. 
 Assign scores (0-1) for 8 independent moods based on audio data.
-Song data:
-- Track: {row['track_name']} by {row['artists']}
-- Energy: {row['energy']}, Valence: {row['valence']}
+
+Track: {row['track_name']} by {row['artists']}
+Genre: {row['track_genre']} | Popularity: {row['popularity']}/100 | Explicit: {explicit_text}
+
+Musical Theory:
+- Key: {row['key']} | Mode: {mode_text}
+- Tempo: {row['tempo']} BPM | Time Signature: {row['time_signature']}/4
+
+Audio Metrics:
+- Energy: {row['energy']} | Valence: {row['valence']} (Positivity)
+- Loudness: {row['loudness']} dB | Danceability: {row['danceability']}
+- Instrumentalness: {row['instrumentalness']} | Acousticness: {row['acousticness']}
+- Speechiness: {row['speechiness']} | Liveness: {row['liveness']}
 
 Return ONLY JSON:
 {{
