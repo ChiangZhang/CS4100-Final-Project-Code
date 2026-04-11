@@ -15,7 +15,7 @@ app = Flask(__name__)
 CORS(app)
 
 # ── Load dataset once at startup ──────────────────────────────────────────────
-_DATASET_PATH = os.path.join(project_root, 'models', 'simulated_mood_dataset.csv')
+_DATASET_PATH = os.path.join(project_root, 'models', 'final_mood_mapped_library.csv')
 try:
     _ALL_SONGS = load_dataset(_DATASET_PATH)
     print(f"[startup] Loaded {len(_ALL_SONGS)} songs.")
@@ -77,9 +77,9 @@ def generate_playlist():
             start_song       = start_song,
             target_mood      = end_mood,
             playlist_length  = n_songs,
-            max_iterations   = 20000,
+            max_iterations   = 30000,
             initial_temp     = 1.0,
-            cooling_rate     = 0.9995,
+            cooling_rate     = 0.9999,
             end_threshold    = 0.90,
             weight_expected  = 0.75,
             weight_smooth    = 0.25,

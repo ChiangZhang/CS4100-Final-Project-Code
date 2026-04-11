@@ -167,9 +167,9 @@ def generate_playlist(
     start_song: Song,
     target_mood: str,
     playlist_length: int = 10,
-    max_iterations: int = 20000,
+    max_iterations: int = 30000,
     initial_temp: float = 1.0,
-    cooling_rate: float = 0.9995,
+    cooling_rate: float = 0.9998,
     end_threshold: float = 0.90,
     weight_expected: float = 0.75,
     weight_smooth: float = 0.25,
@@ -355,7 +355,7 @@ def main():
 
     # Dataset: same directory as this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
-    dataset_path = os.path.join(script_dir, "simulated_mood_dataset.csv")
+    dataset_path = os.path.join(script_dir, "final_mood_mapped_library.csv")
 
     print("Loading dataset...")
     songs = load_dataset(dataset_path)
@@ -389,13 +389,13 @@ def main():
         start_song=start_song,
         target_mood=target_mood,
         playlist_length=playlist_length,
-        max_iterations=20000,
+        max_iterations=100000,
         initial_temp=1.0,
-        cooling_rate=0.9995,
+        cooling_rate=0.9998,
         end_threshold=0.90,
         weight_expected=0.75,
         weight_smooth=0.25,
-        stagnation_limit=3000,
+        stagnation_limit= 5000,
         seed=42,
         verbose=True,
     )
