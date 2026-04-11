@@ -32,6 +32,7 @@ import math
 import random
 import copy
 from dataclasses import dataclass, field
+import matplotlib.pyplot as plt
 
 # ============================================================
 # Extensible mood list — add or remove moods here only
@@ -185,6 +186,9 @@ def generate_playlist(
       consecutive iterations. Resets the current playlist to a new random solution
       and resets temperature to initial_temp, while preserving the global best.
     """
+    score_history = []
+    best_history = []
+
     if seed is not None:
         random.seed(seed)
 
@@ -207,6 +211,8 @@ def generate_playlist(
 
     global_best_playlist = copy.deepcopy(playlist)
     global_best_score = current_score
+    score_history.append(current_score)
+    best_history.append(global_best_score)
 
     temperature = initial_temp
     accepted_worse = 0
@@ -301,7 +307,7 @@ def generate_playlist(
         print(f"   Total iterations: {max_iterations}, accepted: {total_accepted}, "
               f"accepted_worse: {accepted_worse}, restarts: {restarts}")
 
-    return global_best_playlist
+    return global_best_playlist, score_history, best_history
 
 
 # ============================================================
@@ -382,9 +388,8 @@ def main():
         return
 
     print(f"\nFound starting song: {start_song}")
-
-    # ---------- Generate Playlist ----------
-    playlist = generate_playlist(
+    
+    playlist, score_history, best_history  = generate_playlist(
         songs=songs,
         start_song=start_song,
         target_mood=target_mood,
@@ -399,13 +404,42 @@ def main():
         seed=42,
         verbose=True,
     )
-
-    # ---------- Print Results ----------
+    
+    plt.figure()
+    plt.plot(score_history, label="Current Score")
+    plt.plot(best_history, label="Best Score So Far")
+    plt.xlabel("Iteration")
+    plt.ylabel("Score")
+    plt.title("Optimization Progress (Lower is Better)")
+    plt.legend()
+    plt.show()
+    
     print_playlist(playlist, target_mood)
 
     final_score = compute_score(playlist, target_mood)
     print(f"  Final score: {final_score:.6f} (lower is better)")
+    
+    target_vals = [song.mood_values.get(target_mood, 0) for song in playlist]
 
+    plt.figure()
+    plt.plot(target_vals, marker='o')
+    plt.xlabel("Playlist Position")
+    plt.ylabel(f"{target_mood} Intensity")
+    plt.title("Mood Transition Across Playlist")
+    plt.show()
+
+    n = len(playlist)
+    start_val = target_vals[0]
+    expected = [start_val + (1.0 - start_val) * (i / (n - 1)) for i in range(n)]
+
+    plt.figure()
+    plt.plot(expected, linestyle='--', label="Expected")
+    plt.plot(target_vals, marker='o', label="Actual")
+    plt.xlabel("Playlist Position")
+    plt.ylabel("Target Mood Intensity")
+    plt.title("Expected vs Actual Mood Progression")
+    plt.legend()
+    plt.show()
 
 if __name__ == "__main__":
     main()
