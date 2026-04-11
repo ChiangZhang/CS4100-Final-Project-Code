@@ -17,6 +17,7 @@ df = df.dropna(subset=['artists', 'album_name', 'track_name'])
 
 #drop duplicated rows
 df = df.drop_duplicates()
+df = df.drop_duplicates(subset= ['track_name', 'artists', 'duration_ms'])
 print(df.shape)
 
 

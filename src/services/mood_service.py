@@ -1,7 +1,7 @@
 import torch
 import numpy as np
-from models.mood_model import MoodNet
-from utils.mood_utils import MOODS
+from src.models.mood_model import MoodNet
+from src.utils.mood_utils import MOODS
 import os
 import subprocess
 
