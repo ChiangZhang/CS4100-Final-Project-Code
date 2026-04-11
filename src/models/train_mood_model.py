@@ -1,67 +1,97 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
+from torch.utils.data import DataLoader, TensorDataset
 import pandas as pd
+import numpy as np
+from sklearn.model_selection import KFold
 from sklearn.preprocessing import StandardScaler
 import joblib
 import os
 
 from mood_model import MoodNet
 
-DATA_PATH = "src/data/demo_dataset.csv"
+DATA_PATH = "src/data/v2_training_dataset.csv"
 MODEL_PATH = "src/models/mood_model.pt"
 SCALER_PATH = "src/models/feature_scaler.pkl"
 
-FEATURE_COLS = [
-    "danceability","energy","loudness","speechiness",
-    "acousticness","instrumentalness","liveness","valence","tempo"
+SCALABLE_COLS = [
+    "danceability", "energy", "loudness", "speechiness", 
+    "acousticness", "instrumentalness", "liveness", "valence", "tempo"
 ]
+MOOD_COLS = ["calm", "happy", "energetic", "sad", "dark", "romantic", "focus", "hype"]
+META_COLS = ["track_id", "artists", "album_name", "track_name"]
 
-MOOD_COLS = [
-    "calm","happy","energetic","sad","dark","romantic","focus","hype"
-]
+def train_loop(dataloader, model, loss_fn, optimizer):
+    model.train()
+    for batch,(X, y) in enumerate(dataloader):
+        pred = model(X)
+        loss = loss_fn(pred, y)
 
-# Load data
-df = pd.read_csv(DATA_PATH)
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
 
-X = df[FEATURE_COLS].values
-y = df[MOOD_COLS].values
+def test_loop(dataloader, model, loss_fn):
+    model.eval()
+    num_batches = len(dataloader)
+    test_loss = 0
 
-# Scale features
-scaler = StandardScaler()
-X_scaled = scaler.fit_transform(X)
+    with torch.no_grad():
+        for X, y in dataloader:
+            pred = model(X)
+            test_loss += loss_fn(pred, y).item()
+    
+    avg_loss = test_loss / num_batches
+    return avg_loss
 
-joblib.dump(scaler, SCALER_PATH)
-print(f"Scaler saved to {SCALER_PATH}")
+def main():
+    df = pd.read_csv(DATA_PATH)
+    
+    # shuffle all data to break alphabetical genre bias
+    df = df.sample(frac=1, random_state=42).reset_index(drop=True)
 
-# Convert to tensors
-X_tensor = torch.tensor(X_scaled, dtype=torch.float32)
-y_tensor = torch.tensor(y, dtype=torch.float32)
+    # Everything that isn't Mood or Metadata is a Feature (includes all 114 Genres)
+    ALL_FEATURES = [c for c in df.columns if c not in MOOD_COLS + META_COLS]
+    GENRE_COLS = [c for c in ALL_FEATURES if c not in SCALABLE_COLS]
 
-# Model
-model = MoodNet(
-    input_dim=len(FEATURE_COLS),
-    hidden_dim=64,
-    num_moods=len(MOOD_COLS)
-)
-criterion = nn.MSELoss()
-optimizer = optim.Adam(model.parameters(), lr=0.001)
+    # Scale features
+    scaler = StandardScaler()
+    scaled_audio_features = scaler.fit_transform(df[SCALABLE_COLS])
+    X = np.hstack([scaled_audio_features, df[GENRE_COLS].values]).astype(np.float32)
+    y = df[MOOD_COLS].values.astype(np.float32)
 
-# Train
-EPOCHS = 50
+    os.makedirs("src/models", exist_ok=True)
+    joblib.dump(scaler, SCALER_PATH)
 
-for epoch in range(EPOCHS):
-    optimizer.zero_grad()
-    outputs = model(X_tensor)
-    loss = criterion(outputs, y_tensor)
-    loss.backward()
-    optimizer.step()
+    # k-fold cross validation
+    kf = KFold(n_splits=5, shuffle=True, random_state=42)
+    best_all_time_loss = float('inf')
+    fold_mses = []
 
-    if (epoch+1) % 10 == 0:
-        print(f"Epoch {epoch+1}/{EPOCHS} - Loss: {loss.item():.4f}")
+    for fold, (train_idx, val_idx) in enumerate(kf.split(X)):
+        train_loader = DataLoader(TensorDataset(torch.from_numpy(X[train_idx]), torch.from_numpy(y[train_idx])), batch_size=32, shuffle=True)
+        val_loader = DataLoader(TensorDataset(torch.from_numpy(X[val_idx]), torch.from_numpy(y[val_idx])), batch_size=32)
 
-# Save model
-os.makedirs("src/models", exist_ok=True)
-torch.save(model.state_dict(), MODEL_PATH)
+        model = MoodNet(input_dim=X.shape[1], hidden_dim=256, num_moods=len(MOOD_COLS))
+        loss_fn =  nn.MSELoss()
+        optimizer = optim.Adam(model.parameters(), lr=0.001)
 
-print(f"Model saved to {MODEL_PATH}")
+        EPOCHS = 50
+        for epoch in range(EPOCHS):
+            train_loop(train_loader, model, loss_fn, optimizer)
+
+        # Capture MSE after training is done for this fold
+        current_fold_mse = test_loop(val_loader, model, loss_fn)
+        fold_mses.append(current_fold_mse)
+        print(f"Fold {fold+1} MSE: {current_fold_mse:.4f}")
+
+        if current_fold_mse < best_all_time_loss:
+            best_all_time_loss = current_fold_mse
+            torch.save(model.state_dict(), MODEL_PATH)
+            print(f">>> New Best Model Found (MSE: {best_all_time_loss:.6f})")
+
+    print(f"\nFinal Best MSE: {best_all_time_loss:.6f}")
+
+if __name__ == "__main__":
+    main()
