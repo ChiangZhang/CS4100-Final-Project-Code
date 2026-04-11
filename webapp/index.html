@@ -5,6 +5,108 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MoodGen Webapp</title>
     <link rel="stylesheet" href="index.css">
+    <style>
+        /* --- Tooltip --- */
+        .chart-tooltip {
+            position: absolute;
+            background: #222;
+            border: 1px solid #444;
+            border-radius: 4px;
+            padding: 0.4rem 0.5rem;
+            pointer-events: none;
+            min-width: 140px;
+            z-index: 10;
+        }
+        .tt-title { font-size: 0.75rem; font-weight: 600; color: #ddd; margin-bottom: 0.25rem; }
+        .tt-row { display: flex; align-items: center; gap: 4px; font-size: 0.7rem; color: #bbb; margin-bottom: 1px; }
+        .tt-dot { width: 6px; height: 6px; border-radius: 2px; }
+        .tt-val { font-weight: 600; }
+
+        /* --- Track Cards (FIXED) --- */
+        .track-card {
+            display: flex;
+            flex-direction: column; /* Stack top info and bottom bars */
+            gap: 0.75rem;
+            background: #181818;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            width: 100%; /* Force full width */
+            box-sizing: border-box; /* Include padding in width calculation */
+        }
+
+        .seed-card { border-color: #555; background: #1c1c1c; }
+        
+        /* Top half of the card */
+        .track-header {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .track-number { font-size: 1.1rem; font-weight: 600; color: #aaa; }
+        .track-name { font-size: 0.95rem; font-weight: 500; color: #ddd; }
+        .track-artist { font-size: 0.8rem; color: #888; }
+
+        /* --- Progress Bars (FIXED) --- */
+        .track-stats {
+            width: 100%; /* Ensure bar container stretches */
+        }
+
+        .mini-bar-row {
+            display: grid;
+            /* Label: Fixed | Bar: Fluid (1fr) | Percent: Fixed */
+            grid-template-columns: 80px 1fr 45px; 
+            align-items: center;
+            gap: 12px;
+            margin-top: 4px;
+        }
+
+        .mini-bar-label {
+            font-size: 0.65rem;
+            text-transform: capitalize;
+            color: #888;
+            white-space: nowrap;
+        }
+
+        .mini-bar-bg {
+            width: 100%; /* Fills the 1fr grid space */
+            height: 6px;
+            background: #2f2f2f;
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .mini-bar-fill {
+            height: 100%;
+            background: #888;
+            border-radius: 3px;
+            /* Transition makes it feel premium when data loads */
+            transition: width 0.4s ease-out; 
+        }
+
+        .mini-bar-pct {
+            text-align: right;
+            font-size: 0.65rem;
+            color: #666;
+        }
+
+        /* --- UI Components --- */
+        #status-msg {
+            margin-top: 0.75rem;
+            padding: 0.5rem 0.6rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+        }
+        .status-loading, .status-success, .status-error { background: #2a2a2a; color: #aaa; }
+
+        .song-dropdown { background: #181818; border: 1px solid #333; border-top: none; border-radius: 0 0 4px 4px; }
+        .dropdown-item { padding: 0.5rem 0.7rem; border-bottom: 1px solid #2a2a2a; }
+        .dropdown-item:hover { background: #222; }
+        .di-name { font-size: 0.85rem; color: #ddd; font-weight: 500; }
+        .di-artist { font-size: 0.7rem; color: #777; }
+    </style>
 </head>
 <body>
 
@@ -51,9 +153,12 @@
                 </div>
             </div>
             <div class="form-group">
-                <label for="start-song">Seed Song (Spotify link)</label>
-                <input type="text" id="start-song" name="start-song"
-                       placeholder="https://open.spotify.com/track/…">
+                <label for="start-song">Enter Starting Song Name</label>
+                <div class="song-search-wrap">
+                    <input type="text" id="start-song" name="start-song" placeholder="Search for a song…" autocomplete="off">
+                    <div id="song-dropdown" class="song-dropdown" style="display:none;"></div>
+                </div>
+                <div id="selected-song-info" class="selected-song-info" style="display:none;"></div>
             </div>
             <div class="form-group">
                 <label for="n-songs">Playlist Length</label>
