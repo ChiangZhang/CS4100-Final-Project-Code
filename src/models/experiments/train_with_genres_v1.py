@@ -55,12 +55,10 @@ def main():
     ALL_FEATURES = [c for c in df.columns if c not in MOOD_COLS + META_COLS]
     GENRE_COLS = [c for c in ALL_FEATURES if c not in SCALABLE_COLS]
 
-    # SCALE ONLY AUDIO
+    # Scale features
     scaler = StandardScaler()
-    scaled_audio = scaler.fit_transform(df[SCALABLE_COLS])
-    
-    # NEW X: Only use the 9 audio features
-    X = scaled_audio.astype(np.float32) 
+    scaled_audio_features = scaler.fit_transform(df[SCALABLE_COLS])
+    X = np.hstack([scaled_audio_features, df[GENRE_COLS].values]).astype(np.float32)
     y = df[MOOD_COLS].values.astype(np.float32)
 
     os.makedirs("src/models", exist_ok=True)
@@ -75,7 +73,7 @@ def main():
         train_loader = DataLoader(TensorDataset(torch.from_numpy(X[train_idx]), torch.from_numpy(y[train_idx])), batch_size=32, shuffle=True)
         val_loader = DataLoader(TensorDataset(torch.from_numpy(X[val_idx]), torch.from_numpy(y[val_idx])), batch_size=32)
 
-        model = MoodNet(input_dim=X.shape[1], hidden_dim=64, num_moods=len(MOOD_COLS))
+        model = MoodNet(input_dim=X.shape[1], hidden_dim=256, num_moods=len(MOOD_COLS))
         loss_fn =  nn.MSELoss()
         optimizer = optim.Adam(model.parameters(), lr=0.001)
 
