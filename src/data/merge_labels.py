@@ -4,7 +4,7 @@ import os
 FEATURES_PATH = "src/data/cleaned_dataset_unique.csv"
 BATCH1_PATH = "src/data/labeled_batch1_unique.csv"
 BATCH2_PATH = "src/data/validation_5k_batch2.csv"
-OUTPUT_PATH = "src/data/v2_training_dataset.csv"
+OUTPUT_PATH = "src/data/full_training_dataset.csv"
 
 print("Loading features and labels...")
 b1 = pd.read_csv(BATCH1_PATH)

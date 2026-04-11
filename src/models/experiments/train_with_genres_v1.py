@@ -11,7 +11,7 @@ import os
 
 from mood_model import MoodNet
 
-DATA_PATH = "src/data/v2_training_dataset.csv"
+DATA_PATH = "src/data/full_training_dataset.csv"
 MODEL_PATH = "src/models/mood_model.pt"
 SCALER_PATH = "src/models/feature_scaler.pkl"
 
