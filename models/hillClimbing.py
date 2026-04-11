@@ -38,8 +38,6 @@ import matplotlib.pyplot as plt
 # Extensible mood list — add or remove moods here only
 # ============================================================
 MOODS = ["calm", "energetic", "happy", "sad", "dark", "romantic", "focus", "hype"]
-score_history = []
-best_history = []
 
 
 # ============================================================
@@ -188,6 +186,9 @@ def generate_playlist(
       consecutive iterations. Resets the current playlist to a new random solution
       and resets temperature to initial_temp, while preserving the global best.
     """
+    score_history = []
+    best_history = []
+
     if seed is not None:
         random.seed(seed)
 
