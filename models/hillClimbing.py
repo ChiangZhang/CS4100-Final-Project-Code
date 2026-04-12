@@ -1,3 +1,4 @@
+# Ai disclosure: I use Claude to create and modify the codes(hillClimbing, playlist1 and playlist2).
 """
 playlist_generator.py
 --------------------------
