@@ -1,5 +1,7 @@
 #### including this file to summarize the changes I've made in this branch, and how the double nueral network
 #### can be used in the rest of the code
+# NOTE: changes have been made to this implementation
+
 
 ## Files Added
 
