@@ -1,3 +1,4 @@
+# Ai disclosure: I use Claude to create and modify the code.
 import sys, os
 
 project_root = os.path.join(os.path.dirname(__file__), '..')
