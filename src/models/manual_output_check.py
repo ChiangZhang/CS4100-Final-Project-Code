@@ -9,7 +9,7 @@ MODEL_PATH = "src/models/mood_model.pt"
 SCALER_PATH = "src/models/feature_scaler.pkl"
 MASTER_DATA_PATH = "src/data/cleaned_dataset_unique.csv" 
 
-# --- CONFIGURATION ---
+# configuration
 # Change this to any track_id from your dataset
 TARGET_TRACK_ID = "3N69Iu7bWun04E5vXf2L7a" 
 

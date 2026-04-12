@@ -32,17 +32,12 @@ import math
 import random
 import copy
 from dataclasses import dataclass, field
-import matplotlib.pyplot as plt
 
-# ============================================================
-# Extensible mood list — add or remove moods here only
-# ============================================================
+# possible mood options
 MOODS = ["calm", "energetic", "happy", "sad", "dark", "romantic", "focus", "hype"]
 
 
-# ============================================================
-# Data Structure
-# ============================================================
+# data struct
 @dataclass
 class Song:
     track_id: str
@@ -56,9 +51,6 @@ class Song:
         return f"'{self.track_name}' by {self.artists} (top: {top_mood}={top_val:.2f})"
 
 
-# ============================================================
-# Data Loading
-# ============================================================
 def load_dataset(csv_path: str) -> list[Song]:
     """Load song dataset from a CSV file."""
     songs = []
@@ -84,20 +76,17 @@ def load_dataset(csv_path: str) -> list[Song]:
 def find_song_by_name(songs: list[Song], name: str) -> Song | None:
     """Fuzzy search for a song by name (case-insensitive, substring match)."""
     name_lower = name.lower().strip()
-    # Prefer exact match
+    # prefer exact match
     for s in songs:
         if s.track_name.lower().strip() == name_lower:
             return s
-    # Fall back to substring match
+    # fall back to substring match
     for s in songs:
         if name_lower in s.track_name.lower():
             return s
     return None
 
 
-# ============================================================
-# Scoring Function
-# ============================================================
 def compute_score(
     playlist: list[Song],
     target_mood: str,
@@ -107,14 +96,14 @@ def compute_score(
     """
     Compute the total score of a playlist (lower is better).
 
-    1. Expected Deviation: target mood should linearly increase from start value to 1.0
-    2. Smoothness: non-target mood jumps between adjacent songs should be minimal
+    Expected Deviation: target mood should linearly increase from start value to 1.0
+    Smoothness: non-target mood jumps between adjacent songs should be minimal
     """
     n = len(playlist)
     if n < 2:
         return 0.0
 
-    # ---- 1. Expected Deviation Score ----
+    # expected deviation
     start_val = playlist[0].mood_values.get(target_mood, 0.0)
     expected_deviation = 0.0
     for i in range(n):
@@ -123,7 +112,7 @@ def compute_score(
         expected_deviation += (actual - expected) ** 2
     expected_deviation /= n
 
-    # ---- 2. Smoothness Score ----
+    # smoothness score
     non_target_moods = [m for m in MOODS if m != target_mood]
     smoothness_penalty = 0.0
     for i in range(n - 1):
@@ -135,17 +124,12 @@ def compute_score(
     return weight_expected * expected_deviation + weight_smooth * smoothness_penalty
 
 
-# ============================================================
-# Ending Song Constraint
-# ============================================================
+
 def is_valid_ending(song: Song, target_mood: str, threshold: float = 0.90) -> bool:
     """The ending song's target mood intensity must be >= threshold."""
     return song.mood_values.get(target_mood, 0.0) >= threshold
 
 
-# ============================================================
-# Random Playlist Initialization
-# ============================================================
 def random_playlist(
     songs: list[Song],
     start_song: Song,
@@ -160,9 +144,6 @@ def random_playlist(
     return playlist
 
 
-# ============================================================
-# Hill Climbing + Simulated Annealing + Random Restart
-# ============================================================
 def generate_playlist(
     songs: list[Song],
     start_song: Song,
@@ -186,16 +167,12 @@ def generate_playlist(
       consecutive iterations. Resets the current playlist to a new random solution
       and resets temperature to initial_temp, while preserving the global best.
     """
-    score_history = []
-    best_history = []
-
     if seed is not None:
         random.seed(seed)
 
     if target_mood not in MOODS:
         raise ValueError(f"Unknown mood '{target_mood}', available: {MOODS}")
 
-    # ---- End candidate pool ----
     end_candidates = [s for s in songs if is_valid_ending(s, target_mood, end_threshold)]
     if not end_candidates:
         print(f"Warning: no songs with {target_mood} >= {end_threshold}, "
@@ -203,22 +180,19 @@ def generate_playlist(
         end_threshold *= 0.7
         end_candidates = [s for s in songs if is_valid_ending(s, target_mood, end_threshold)]
     if not end_candidates:
-        end_candidates = songs  # final fallback
+        end_candidates = songs
 
-    # ---- Initialization ----
     playlist = random_playlist(songs, start_song, end_candidates, playlist_length)
     current_score = compute_score(playlist, target_mood, weight_expected, weight_smooth)
 
     global_best_playlist = copy.deepcopy(playlist)
     global_best_score = current_score
-    score_history.append(current_score)
-    best_history.append(global_best_score)
 
     temperature = initial_temp
     accepted_worse = 0
     total_accepted = 0
     restarts = 0
-    iters_since_improvement = 0  # iterations since last global best improvement
+    iters_since_improvement = 0
 
     if verbose:
         print(f"\nHill Climbing + Simulated Annealing + Random Restart")
@@ -233,46 +207,46 @@ def generate_playlist(
 
     for iteration in range(max_iterations):
 
-        # ========== Random Restart Check ==========
+        # random restart check
         if iters_since_improvement >= stagnation_limit:
             restarts += 1
             if verbose:
                 print(f"   Restart #{restarts} @ iter {iteration} | "
                       f"global_best={global_best_score:.6f} | stagnant for {stagnation_limit} steps")
 
-            # Re-randomize playlist, reset temperature
+            # re-randomize playlist and reset temperature
             playlist = random_playlist(songs, start_song, end_candidates, playlist_length)
             current_score = compute_score(playlist, target_mood, weight_expected, weight_smooth)
             temperature = initial_temp
             iters_since_improvement = 0
             continue
 
-        # ========== Generate Neighbor ==========
+        # generate neighbor
         new_playlist = copy.deepcopy(playlist)
         pos = random.randint(1, playlist_length - 1)
 
         if pos == playlist_length - 1:
-            # Ending position: pick from high-target-mood candidate pool only
+            # pick from high-target-mood candidate pool only
             new_playlist[pos] = random.choice(end_candidates)
         else:
-            # Middle position: pick from full song pool
+            # pick from full song pool
             new_playlist[pos] = random.choice(songs)
 
-        # Hard constraint on ending song
+        # hard constraint on ending song
         if not is_valid_ending(new_playlist[-1], target_mood, end_threshold):
             iters_since_improvement += 1
             continue
 
-        # ========== Score & Decision ==========
+        # make score
         new_score = compute_score(new_playlist, target_mood, weight_expected, weight_smooth)
         delta = new_score - current_score
 
         accept = False
         if delta <= 0:
-            # Better or equal — always accept
+            # better or equal means we always accept
             accept = True
         else:
-            # Simulated Annealing: accept worse solution with decreasing probability
+            # simulated Annealing -> accept worse solution with decreasing probability
             if temperature > 1e-10:
                 acceptance_prob = math.exp(-delta / temperature)
                 if random.random() < acceptance_prob:
@@ -293,10 +267,9 @@ def generate_playlist(
         else:
             iters_since_improvement += 1
 
-        # Cool down
+        # cool down
         temperature *= cooling_rate
 
-        # Logging
         if verbose and (iteration + 1) % 2000 == 0:
             print(f"   iter {iteration + 1:5d} | current={current_score:.6f} | "
                   f"global_best={global_best_score:.6f} | T={temperature:.6f} | "
@@ -307,12 +280,8 @@ def generate_playlist(
         print(f"   Total iterations: {max_iterations}, accepted: {total_accepted}, "
               f"accepted_worse: {accepted_worse}, restarts: {restarts}")
 
-    return global_best_playlist, score_history, best_history
+    return global_best_playlist
 
-
-# ============================================================
-# Print Playlist
-# ============================================================
 def print_playlist(playlist: list[Song], target_mood: str):
     """Pretty-print the generated playlist."""
     n = len(playlist)
@@ -336,8 +305,7 @@ def print_playlist(playlist: list[Song], target_mood: str):
         print(f"{i + 1:>3}{marker} {name:<30} {artist:<20} {actual:>8.4f} {expected:>8.4f} {deviation:>+8.4f}")
 
     print(f"{'='*80}")
-
-    # Mood intensity overview
+    
     print(f"\n  Mood Intensity Overview:")
     print(f"{'#':>3}  ", end="")
     for m in MOODS:
@@ -351,15 +319,10 @@ def print_playlist(playlist: list[Song], target_mood: str):
         print()
     print()
 
-
-# ============================================================
-# Main
-# ============================================================
 def main():
     import sys
     import os
 
-    # Dataset: same directory as this script
     script_dir = os.path.dirname(os.path.abspath(__file__))
     dataset_path = os.path.join(script_dir, "simulated_mood_dataset.csv")
 
@@ -367,7 +330,6 @@ def main():
     songs = load_dataset(dataset_path)
     print(f"   Loaded {len(songs)} songs, {len(MOODS)} moods: {MOODS}")
 
-    # ---------- User Input ----------
     if len(sys.argv) >= 4:
         song_name = sys.argv[1]
         target_mood = sys.argv[2]
@@ -378,7 +340,7 @@ def main():
         length_str = input("Enter playlist length (default 10): ").strip()
         playlist_length = int(length_str) if length_str else 10
 
-    # Find song
+    # find song
     start_song = find_song_by_name(songs, song_name)
     if start_song is None:
         print(f"\nSong '{song_name}' not found.")
@@ -388,8 +350,9 @@ def main():
         return
 
     print(f"\nFound starting song: {start_song}")
-    
-    playlist, score_history, best_history  = generate_playlist(
+
+    # generate playlist
+    playlist = generate_playlist(
         songs=songs,
         start_song=start_song,
         target_mood=target_mood,
@@ -404,42 +367,12 @@ def main():
         seed=42,
         verbose=True,
     )
-    
-    plt.figure()
-    plt.plot(score_history, label="Current Score")
-    plt.plot(best_history, label="Best Score So Far")
-    plt.xlabel("Iteration")
-    plt.ylabel("Score")
-    plt.title("Optimization Progress (Lower is Better)")
-    plt.legend()
-    plt.show()
-    
+
     print_playlist(playlist, target_mood)
 
     final_score = compute_score(playlist, target_mood)
     print(f"  Final score: {final_score:.6f} (lower is better)")
-    
-    target_vals = [song.mood_values.get(target_mood, 0) for song in playlist]
 
-    plt.figure()
-    plt.plot(target_vals, marker='o')
-    plt.xlabel("Playlist Position")
-    plt.ylabel(f"{target_mood} Intensity")
-    plt.title("Mood Transition Across Playlist")
-    plt.show()
-
-    n = len(playlist)
-    start_val = target_vals[0]
-    expected = [start_val + (1.0 - start_val) * (i / (n - 1)) for i in range(n)]
-
-    plt.figure()
-    plt.plot(expected, linestyle='--', label="Expected")
-    plt.plot(target_vals, marker='o', label="Actual")
-    plt.xlabel("Playlist Position")
-    plt.ylabel("Target Mood Intensity")
-    plt.title("Expected vs Actual Mood Progression")
-    plt.legend()
-    plt.show()
 
 if __name__ == "__main__":
     main()

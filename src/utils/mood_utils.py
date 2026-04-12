@@ -7,7 +7,6 @@ MOODS = [
 ]
 
 def load_data():
-    # TODO: migrate cleaned data file over to src/data directory (preferably with cleanup code)
     df = pd.read_csv("data/cleaned_dataset.csv")
     
     feature_cols = [
