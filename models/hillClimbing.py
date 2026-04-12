@@ -1,4 +1,4 @@
-# Ai disclosure: I use Claude to create and modify the codes(hillClimbing, playlist1 and playlist2).
+# Ai disclosure: I use Claude to create and modify the codes(hillClimbing, playlist1 and playlist2). I also use it to generate simulative database.
 """
 playlist_generator.py
 --------------------------
