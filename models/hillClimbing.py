@@ -307,7 +307,7 @@ def generate_playlist(
         print(f"   Total iterations: {max_iterations}, accepted: {total_accepted}, "
               f"accepted_worse: {accepted_worse}, restarts: {restarts}")
 
-    return global_best_playlist, score_history, best_history
+    return global_best_playlist
 
 
 # ============================================================

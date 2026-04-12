@@ -2,7 +2,11 @@ from urllib.parse import urlparse
 import pandas as pd
 import requests
 
-from src.models.train_mood_model import FEATURE_COLS
+# Defined here directly to avoid circular/missing import from train_mood_model
+FEATURE_COLS = [
+    'danceability', 'energy', 'loudness', 'speechiness',
+    'acousticness', 'instrumentalness', 'liveness', 'valence', 'tempo'
+]
 
 class TrackService:
     
@@ -41,7 +45,6 @@ class TrackService:
             response = requests.get(url, headers=headers)
             response_json = response.json()
             
-            # Extract artists and join them with a semicolon to match CSV
             artists_list = response_json.get("artists", [])
             if artists_list:
                 artists_str = ";".join([artist.get("name", "Unknown Artist") for artist in artists_list])
@@ -50,7 +53,7 @@ class TrackService:
             
             track_info = {
                 "track_name": response_json.get("name", "Unknown Track"),
-                "artists": artists_str # Changed to plural "artists"
+                "artists": artists_str
             }
 
             return pd.DataFrame([track_info])
