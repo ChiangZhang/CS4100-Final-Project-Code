@@ -14,5 +14,4 @@ class MoodNet(nn.Module):
         x = F.relu(x)
         x = self.fc2(x)
         
-        # Use sigmoid if multi-label, softmax if single-label
         return torch.sigmoid(x)

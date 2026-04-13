@@ -1,5 +1,7 @@
 ## CAN PROBS DELETE THIS LATER
 
+# for manual testing
+
 import os
 import numpy as np
 from sklearn.preprocessing import MinMaxScaler
@@ -7,7 +9,7 @@ from joblib import dump
 
 INPUT_DIM = 9
 num_samples = 100
-X = np.random.rand(num_samples, INPUT_DIM)  # same shape as training features
+X = np.random.rand(num_samples, INPUT_DIM)
 
 scaler = MinMaxScaler()
 scaler.fit(X)

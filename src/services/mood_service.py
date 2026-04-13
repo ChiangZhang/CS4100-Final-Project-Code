@@ -5,6 +5,9 @@ from src.utils.mood_utils import MOODS
 import os
 import subprocess
 
+# NOTE: functions predict_mood_vector and score_song were produced using an LLM (chatGPT)
+# the objective of the mood service with context was given to the LLM, and it was asked to produce these functions.
+
 MODEL_PATH = "src/models/mood_model.pt"
 SCALER_PATH = os.path.join(os.path.dirname(__file__), "../models/feature_scaler.pkl")
 

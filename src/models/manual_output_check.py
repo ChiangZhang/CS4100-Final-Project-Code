@@ -4,6 +4,9 @@ import pandas as pd
 import numpy as np
 from mood_model import MoodNet
 
+#NOTE: LLM used (chatGPT to generate this manual output check script to run for testing purposes)
+# I gave the LLM the model I wanted to test manually through the terminal (to validate it worked as expected)
+
 # Paths
 MODEL_PATH = "src/models/mood_model.pt"
 SCALER_PATH = "src/models/feature_scaler.pkl"

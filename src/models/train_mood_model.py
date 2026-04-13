@@ -12,6 +12,9 @@ import matplotlib.pyplot as plt
 
 from mood_model import MoodNet
 
+# NOTE: LLM (ChatGPT) used to add graphs to this code that demonstrate the accuracy of the trained model
+# code was given to LLM with context about what graphs and visuals I wanted to produce, and then I asked the LLM to make adjustments to my existing code to add those graphs in.
+
 DATA_PATH = "src/data/full_training_dataset.csv"
 MODEL_PATH = "src/models/mood_model.pt"
 SCALER_PATH = "src/models/feature_scaler.pkl"
